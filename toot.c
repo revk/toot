@@ -23,7 +23,7 @@ main (int argc, const char *argv[])
    const char *code = NULL;
    const char *website = NULL;
    const char *language = "en";
-   const char *visibility = "public";
+   const char *visibility = "unlisted";
    const char *spoiler = NULL;
    const char *reply = NULL;
    const char *scheduled = NULL;
