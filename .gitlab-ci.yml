@@ -30,5 +30,7 @@ deploy:
   only:
     refs:
       - tags
+  variables:
+    UPSTREAM_REF: $CI_MERGE_REQUEST_REF_PATH
   trigger:
     project: shared-stuff/build
