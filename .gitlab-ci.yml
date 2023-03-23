@@ -29,7 +29,6 @@ deploy:
   stage: deploy
   only:
     refs:
-      - main
       - tags
   needs:
     - job: makeall
