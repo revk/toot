@@ -1,0 +1,10 @@
+Source: aa-toot
+Maintainer: Andrews and Arnold <debs@aa.net.uk>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: aa-toot
+Architecture: amd64
+Description: RevK's toot tool

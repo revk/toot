@@ -1,0 +1,37 @@
+---
+
+stages:
+  - build
+  - deploy
+
+makeall:
+  tags:
+    - debian
+    - bullseye
+  stage: build
+  script:
+    - apt-get update
+    - >
+        apt-get install --no-install-recommends -y devscripts build-essential
+        debhelper git lsb-release gcc make indent libpopt-dev
+        libcurl4-openssl-dev
+    - git submodule update --init --remote --recursive
+    - debuild -us -uc
+    - mkdir artifacts
+    - dpkg -i ../*deb  # Test all the way to install
+    - cp ../*.deb artifacts
+  artifacts:
+    paths:
+      - artifacts/*.deb
+    expire_in: 2 weeks
+
+deploy:
+  stage: deploy
+  only:
+    refs:
+      - tags
+  needs:
+    - job: makeall
+      artifacts: true
+  trigger:
+    project: shared-stuff/build
