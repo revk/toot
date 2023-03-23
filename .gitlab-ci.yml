@@ -30,8 +30,5 @@ deploy:
   only:
     refs:
       - tags
-  needs:
-    - job: makeall
-      artifacts: true
   trigger:
     project: shared-stuff/build
