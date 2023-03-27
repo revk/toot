@@ -1,5 +1,7 @@
 ---
 
+include: '$CI_DEPLOY'
+
 stages:
   - build
   - deploy
@@ -24,14 +26,3 @@ makeall:
     paths:
       - artifacts/*.deb
     expire_in: 2 weeks
-
-deploy:
-  stage: deploy
-  only:
-    refs:
-      - tags
-  needs:
-    - job: makeall
-      artifacts: true
-  trigger:
-    project: shared-stuff/build
