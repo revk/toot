@@ -1,8 +1,9 @@
-aa-toot (0.01) UNRELEASED; urgency=low
+aa-toot (0.03) UNRELEASED; urgency=low
 
-  * First build of toot
+  * Tidy to free status cleanly
+  * Cleaner print of URL and IDs when used from console
 
- -- Andrews and Arnold <debs@aa.net.uk>  Wed, 22 Mar 2023 11:57:09 +0000
+ -- Adrian <a@k.gg> Fri, 28 Apr 2023 14:09:00 +0100
 
 aa-toot (0.02) UNRELEASED; urgency=low
 
@@ -10,3 +11,9 @@ aa-toot (0.02) UNRELEASED; urgency=low
   * Added --expand to allow $ expand in status
 
  -- Adrian <a@k.gg> Fri, 28 Apr 2023 10:10:00 +0100
+
+aa-toot (0.01) UNRELEASED; urgency=low
+
+  * First build of toot
+
+ -- Andrews and Arnold <debs@aa.net.uk>  Wed, 22 Mar 2023 11:57:09 +0000

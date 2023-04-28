@@ -109,6 +109,13 @@ main (int argc, const char *argv[])
       }
       poptFreeContext (optCon);
    }
+
+   // Note, valgrind shows a leak on this, as in it seems popt mallocs the string, which is *NOT* documented in popt manual pages.
+   // As such I do not know if popt always does this on all systems. If it does, we have other things needing freeing.
+   // For now, we will assume it is not malloced by popt, until we can find any definitely reference to popt always doing this, and which values it does it to.
+   // This means we are cleanly freeing all we allocate, but still show an issue on valgrind
+   if (status) status = strdup (status); // Use malloc'd memory so can be freed later
+
    CURL *curl = curl_easy_init ();
    if (debug)
       curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
@@ -174,6 +181,8 @@ main (int argc, const char *argv[])
       fclose (m);
       url[--l] = 0;             // Trailing &
       printf ("%s", url);
+      if (isatty (1))
+         putchar ('\n');
       return 0;
    }
    if (code)
@@ -220,6 +229,7 @@ main (int argc, const char *argv[])
       if (e)
          bearer = NULL;         // Get new creds
       if (debug)
+         j_err (j_write_pretty (r, stderr));
          j_delete (&r);
    }
    if (media)
@@ -250,6 +260,8 @@ main (int argc, const char *argv[])
       if (e)
          errx (1, "Failed %s", e);
       printf ("%s", j_get (r, "id"));
+      if (isatty (1))
+         putchar ('\n');
       j_delete (&t);
       j_delete (&r);
    } else if (status)
@@ -257,7 +269,8 @@ main (int argc, const char *argv[])
       if (!*status)
          errx (1, "Empty status");
       if (!strcmp (status, "-"))
-      {                         // Read status from stdin
+      {                         // Replace status with read from stdin
+         free (status);
          size_t l,
            s;
          FILE *m = open_memstream (&status, &l);
@@ -265,13 +278,13 @@ main (int argc, const char *argv[])
          while ((s = read (fileno (stdin), buf, sizeof (buf))) >= 0)
             fwrite (buf, s, 1, m);
          fclose (m);
-         // Note, yes, we don't free
       }
       if (expand)
-      {                         // Expand $variable in status
+      {                         // Replace status with expanded using $variable version
          size_t l;
-         char *s = status;
-         FILE *m = open_memstream (&status, &l);
+         char *s = status,
+            *new;
+         FILE *m = open_memstream (&new, &l);
          while (*s)
          {
             int dollar (void)
@@ -317,6 +330,8 @@ main (int argc, const char *argv[])
             fputc (*s++, m);
          }
          fclose (m);
+         free (status);
+         status = new;
       }
       if (crop)
       {                         // Crop length (typically 500), unicode characters
@@ -330,15 +345,13 @@ main (int argc, const char *argv[])
          }
          if (*s)
          {                      // needs cropping
-            *s = 0;
             while (s > status && (s[-1] & 0xC0) == 0x80)
                s--;
             if (s > status)
                s--;
-            char *new = malloc (s - status + 4);
-            strncpy (new, status, s - status);
-            strcpy (new + (s - status), "…");
-            status = new;
+            size_t pos = s - status;
+            status = realloc (status, pos + 4); // Allow for the ellipsis
+            strcpy (status + pos, "…");
          }
       }
       j_t t = j_create (),
@@ -397,6 +410,8 @@ main (int argc, const char *argv[])
       if (e)
          errx (1, "Failed %s", e);
       printf ("%s", j_get (r, "id"));
+      if (isatty (1))
+         putchar ('\n');
       j_delete (&t);
       j_delete (&r);
    }
@@ -472,5 +487,6 @@ main (int argc, const char *argv[])
    }
    j_delete (&auth);
    curl_easy_cleanup (curl);
+   free (status);
    return 0;
 }
