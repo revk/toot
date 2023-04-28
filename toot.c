@@ -50,8 +50,7 @@ main (int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         {"status", 0, POPT_ARG_STRING, &status, 0, "Status",
-          "Text of status, or - for stdin, assumes a post if no --id, else an edit"},
+         {"status", 0, POPT_ARG_STRING, &status, 0, "Status", "Text of status, or - for stdin, assumes a post if no --edit= set"},
          {"crop", 0, POPT_ARG_INT, &crop, 0, "Crop and add …", "Characters (e.g. 500)"},
          {"expand", 0, POPT_ARG_NONE, &expand, 0, "Expand $variable in status"},
          {"attach", 0, POPT_ARG_STRING, &attach, 0, "Attach", "Comma separated media IDs"},
@@ -81,7 +80,7 @@ main (int argc, const char *argv[])
          {"redirect", 0, POPT_ARG_STRING, &redirect, 0, "Redirect URL for login", "URL"},
          {"scope", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &scope, 0, "Scope", "scopes"},
          {"website", 0, POPT_ARG_STRING, &website, 0, "Website (for created app)", "URL"},
-         { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet" },
+         {"quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet"},
          {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug"},
          POPT_AUTOHELP {}
       };
