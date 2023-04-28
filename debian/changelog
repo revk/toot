@@ -1,4 +1,11 @@
-aa-toot (0.01) UNRELEASED; urgency=low
+aa-toot (0.02) UNRELEASED; urgency=low
+
+  * Added --crop=N to allow cropping to 500 (utf-8) characters (or any number) and adding ellipsis if cropped
+  * Added --expand to allow $ expand in status
+
+ -- Adrian <a@k.gg> Fri, 28 Apr 2023 10:10:00 +0100
+ 
+ aa-toot (0.01) UNRELEASED; urgency=low
 
   * First build of toot
 

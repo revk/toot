@@ -44,11 +44,15 @@ main (int argc, const char *argv[])
    const char *media = NULL;
    char *status = NULL;
    int login = 0;
+   int crop = 0;
+   int expand = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          {"status", 0, POPT_ARG_STRING, &status, 0, "Status",
           "Text of status, or - for stdin, assumes a post if no --id, else an edit"},
+         {"crop", 0, POPT_ARG_INT, &crop, 0, "Crop and add …", "Characters (e.g. 500)"},
+         {"expand", 0, POPT_ARG_NONE, &expand, 0, "Expand $variable in status"},
          {"attach", 0, POPT_ARG_STRING, &attach, 0, "Attach", "Comma separated media IDs"},
          {"focus", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &focus, 0, "Focus", "x,y"},
          {"poll", 0, POPT_ARG_STRING, &poll, 0, "Poll", "Comma separated poll strings"},
@@ -261,6 +265,81 @@ main (int argc, const char *argv[])
          while ((s = read (fileno (stdin), buf, sizeof (buf))) >= 0)
             fwrite (buf, s, 1, m);
          fclose (m);
+         // Note, yes, we don't free
+      }
+      if (expand)
+      {                         // Expand $variable in status
+         size_t l;
+         char *s = status;
+         FILE *m = open_memstream (&status, &l);
+         while (*s)
+         {
+            int dollar (void)
+            {
+               if (*s != '$')
+                  return 0;
+               char *f = s + 1,
+                  *e;
+               if (*f == '$')
+               {
+                  s++;
+                  return 0;     // output $
+               }
+               if (*f == '{')
+               {
+                  e = ++f;
+                  while (*e && *e != '}')
+                     e++;
+                  if (!*e || e == f)
+                     return 0;  // No variable or no closing }
+                  s = e + 1;    // next
+               } else
+               {
+                  e = f;
+                  if (isalpha (*e) || *e == '_')
+                     e++;
+                  while (isalnum (*e) || *e == '_')
+                     e++;
+                  if (e == f)
+                     return 0;  // No variable
+                  s = e;
+               }
+               char *var = strndupa (f, e - f);
+               char *val = getenv (var);
+               if (!val || !*val)
+                  return 1;
+               while (*val)
+                  fputc (*val++, m);
+               return 1;        // done
+            }
+            if (dollar ())
+               continue;        // was matched
+            fputc (*s++, m);
+         }
+         fclose (m);
+      }
+      if (crop)
+      {                         // Crop length (typically 500), unicode characters
+         int p = 0;
+         char *s = status;
+         while (*s)
+         {
+            if ((*s & 0xC0) != 0x80 && crop == p++)
+               break;
+            s++;
+         }
+         if (*s)
+         {                      // needs cropping
+            *s = 0;
+            while (s > status && (s[-1] & 0xC0) == 0x80)
+               s--;
+            if (s > status)
+               s--;
+            char *new = malloc (s - status + 4);
+            strncpy (new, status, s - status);
+            strcpy (new + (s - status), "…");
+            status = new;
+         }
       }
       j_t t = j_create (),
          r = j_create ();
