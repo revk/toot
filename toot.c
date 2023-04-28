@@ -46,6 +46,7 @@ main (int argc, const char *argv[])
    int login = 0;
    int crop = 0;
    int expand = 0;
+   int quiet = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -80,6 +81,7 @@ main (int argc, const char *argv[])
          {"redirect", 0, POPT_ARG_STRING, &redirect, 0, "Redirect URL for login", "URL"},
          {"scope", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &scope, 0, "Scope", "scopes"},
          {"website", 0, POPT_ARG_STRING, &website, 0, "Website (for created app)", "URL"},
+         { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet" },
          {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug"},
          POPT_AUTOHELP {}
       };
@@ -90,6 +92,8 @@ main (int argc, const char *argv[])
       int c;
       if ((c = poptGetNextOpt (optCon)) < -1)
          errx (1, "%s: %s\n", poptBadOption (optCon, POPT_BADOPTION_NOALIAS), poptStrerror (c));
+
+      if (status) status = strdup (status); // Use malloc'd memory so can be freed cleanly later
 
       if (poptPeekArg (optCon))
       {
@@ -110,11 +114,7 @@ main (int argc, const char *argv[])
       poptFreeContext (optCon);
    }
 
-   // Note, valgrind shows a leak on this, as in it seems popt mallocs the string, which is *NOT* documented in popt manual pages.
-   // As such I do not know if popt always does this on all systems. If it does, we have other things needing freeing.
-   // For now, we will assume it is not malloced by popt, until we can find any definitely reference to popt always doing this, and which values it does it to.
-   // This means we are cleanly freeing all we allocate, but still show an issue on valgrind
-   if (status) status = strdup (status); // Use malloc'd memory so can be freed later
+   // Note, we do not try to address popt memory leaks as pretty much impossible
 
    CURL *curl = curl_easy_init ();
    if (debug)
@@ -259,9 +259,12 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          errx (1, "Failed %s", e);
-      printf ("%s", j_get (r, "id"));
-      if (isatty (1))
-         putchar ('\n');
+      if(!quiet)
+      {
+         printf ("%s", j_get (r, "id"));
+         if (isatty (1))
+            putchar ('\n');
+      }
       j_delete (&t);
       j_delete (&r);
    } else if (status)
@@ -409,9 +412,12 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          errx (1, "Failed %s", e);
-      printf ("%s", j_get (r, "id"));
-      if (isatty (1))
-         putchar ('\n');
+      if(!quiet)
+      {
+         printf ("%s", j_get (r, "id"));
+         if (isatty (1))
+            putchar ('\n');
+      }
       j_delete (&t);
       j_delete (&r);
    }
