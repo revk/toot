@@ -277,7 +277,7 @@ main (int argc, const char *argv[])
            s;
          FILE *m = open_memstream (&status, &l);
          char buf[10240];
-         while ((s = read (fileno (stdin), buf, sizeof (buf))) >= 0)
+         while ((s = read (fileno (stdin), buf, sizeof (buf))) > 0)
             fwrite (buf, s, 1, m);
          fclose (m);
       }
