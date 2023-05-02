@@ -1,16 +1,24 @@
+aa-toot (0.04) UNRELEASED; urgency=low
+
+  * Correct bug in --status=- that was hanging
+  * Cosmetic chnages
+  * Added back --quiet
+
+ -- Adrian <a@k.gg>  Tue, 02 May 2023 15:39:59 +0100
+
 aa-toot (0.03) UNRELEASED; urgency=low
 
   * Tidy to free status cleanly
   * Cleaner print of URL and IDs when used from console
 
- -- Adrian <a@k.gg> Fri, 28 Apr 2023 14:09:00 +0100
+ -- Adrian <a@k.gg>  Fri, 28 Apr 2023 14:09:00 +0100
 
 aa-toot (0.02) UNRELEASED; urgency=low
 
   * Added --crop=N to allow cropping to 500 (utf-8) characters (or any number) and adding ellipsis if cropped
   * Added --expand to allow $ expand in status
 
- -- Adrian <a@k.gg> Fri, 28 Apr 2023 10:10:00 +0100
+ -- Adrian <a@k.gg>  Fri, 28 Apr 2023 10:10:00 +0100
 
 aa-toot (0.01) UNRELEASED; urgency=low
 
