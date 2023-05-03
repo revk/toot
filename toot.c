@@ -52,7 +52,7 @@ main (int argc, const char *argv[])
       const struct poptOption optionsTable[] = {
          {"status", 0, POPT_ARG_STRING, &status, 0, "Status", "Text of status, or - for stdin, assumes a post if no --edit= set"},
          {"crop", 0, POPT_ARG_INT, &crop, 0, "Crop and add …", "Characters (e.g. 500)"},
-         {"expand", 0, POPT_ARG_NONE, &expand, 0, "Expand $variable in status"},
+         {"expand", 0, POPT_ARG_NONE, &expand, 0, "Expand $variable in status and allow \\n, etc."},
          {"attach", 0, POPT_ARG_STRING, &attach, 0, "Attach", "Comma separated media IDs"},
          {"focus", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &focus, 0, "Focus", "x,y"},
          {"poll", 0, POPT_ARG_STRING, &poll, 0, "Poll", "Comma separated poll strings"},
@@ -92,7 +92,8 @@ main (int argc, const char *argv[])
       if ((c = poptGetNextOpt (optCon)) < -1)
          errx (1, "%s: %s\n", poptBadOption (optCon, POPT_BADOPTION_NOALIAS), poptStrerror (c));
 
-      if (status) status = strdup (status); // Use malloc'd memory so can be freed cleanly later
+      if (status)
+         status = strdup (status);      // Use malloc'd memory so can be freed cleanly later
 
       if (poptPeekArg (optCon))
       {
@@ -229,7 +230,7 @@ main (int argc, const char *argv[])
          bearer = NULL;         // Get new creds
       if (debug)
          j_err (j_write_pretty (r, stderr));
-         j_delete (&r);
+      j_delete (&r);
    }
    if (media)
    {                            // Media upload
@@ -258,7 +259,7 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          errx (1, "Failed %s", e);
-      if(!quiet)
+      if (!quiet)
       {
          printf ("%s", j_get (r, "id"));
          if (isatty (1))
@@ -327,7 +328,43 @@ main (int argc, const char *argv[])
                   fputc (*val++, m);
                return 1;        // done
             }
+            int backslash (void)
+            {
+               if (*s != '\\')
+                  return 0;
+               s++;
+               if (!*s)
+                  return 1;
+               switch (*s)
+               {
+               case 'a':
+                  fputc ('\a', m);
+                  break;
+               case 'b':
+                  fputc ('\b', m);
+                  break;
+               case 'f':
+                  fputc ('\f', m);
+                  break;
+               case 'n':
+                  fputc ('\n', m);
+                  break;
+               case 'r':
+                  fputc ('\r', m);
+                  break;
+               case 't':
+                  fputc ('\t', m);
+                  break;
+                  // Maybe some day do \nnn, \xnn, \uxxxx, \Uxxxxxxxx, but not really likely to be needed
+               default:
+                  fputc (*s, m);
+               }
+               s++;
+               return 1;
+            }
             if (dollar ())
+               continue;        // was matched
+            if (backslash ())
                continue;        // was matched
             fputc (*s++, m);
          }
@@ -411,7 +448,7 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          errx (1, "Failed %s", e);
-      if(!quiet)
+      if (!quiet)
       {
          printf ("%s", j_get (r, "id"));
          if (isatty (1))
