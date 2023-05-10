@@ -158,24 +158,27 @@ main (int argc, const char *argv[])
                j_delete (&t);
             }
          }
-         j = j_store_object (auth, as);
-         j_t n = j_first (auth);
-         while (n)
+         if (j_find (auth, "access_token"))
          {
-            j_t next = j_next (n);
-            const char *tag = j_name (n);
-            if (tag && *tag != '_' && n != j)
+            j = j_store_object (auth, as);
+            j_t n = j_first (auth);
+            while (n)
             {
-               if (j_isstring (n))
-                  j_store_string (j, tag, j_val (n));
-               j_delete (&n);
+               j_t next = j_next (n);
+               const char *tag = j_name (n);
+               if (tag && *tag != '_' && n != j)
+               {
+                  if (j_isstring (n))
+                     j_store_string (j, tag, j_val (n));
+                  j_delete (&n);
+               }
+               n = next;
             }
-            n = next;
          }
+         const char *e = j_write_file (auth, auth_file);
+         if (e)
+            errx (1, "Failed to update %s: %s", auth_file, e);
       }
-      const char *e = j_write_file (auth, auth_file);
-      if (e)
-         errx (1, "Failed to update %s: %s", auth_file, e);
    }
 
    if (create_app)
