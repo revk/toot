@@ -404,6 +404,15 @@ main (int argc, const char *argv[])
                   return 0;
                char *f = s + 1,
                   *e;
+               if (*f == '-')
+               {                // $- inline sidin
+                  size_t l;
+                  char buf[10240];
+                  while ((l = read (fileno (stdin), buf, sizeof (buf))) > 0)
+                     fwrite (buf, l, 1, m);
+                  s += 2;
+                  return 1;
+               }
                if (*f == '$')
                {
                   s++;
