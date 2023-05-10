@@ -1,3 +1,10 @@
+aa-toot (0.07) UNRELEASED; urgency=low
+
+  * Allow --edit=0 as initial post to simplify scripts
+  * Allow $- for inline stdin with --expand
+
+ -- Andrews and Arnold <debs@aa.net.uk>  Wed, 10 May 2023 08:54:00 +0100
+
 aa-toot (0.06) UNRELEASED; urgency=low
 
   * Allows more than one account on a server
