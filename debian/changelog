@@ -1,3 +1,10 @@
+aa-toot (0.06) UNRELEASED; urgency=low
+
+  * Allows more than one account on a server
+  * Updates config file to be multi account compatible in place
+
+ -- Andrews and Arnold <debs@aa.net.uk>  Wed, 10 May 2023 07:43:00 +0100
+
 aa-toot (0.05) UNRELEASED; urgency=low
 
   * Expand standard backslash characters, easier newlines
