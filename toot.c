@@ -548,7 +548,7 @@ main (int argc, const char *argv[])
       if (debug)
          j_err (j_write_pretty (t, stderr));
       char *e;
-      if (edit)
+      if (edit && *edit && strcmp (edit, "0"))
          e = j_curl_put (curl, t, r, bearer, "https://%s/api/v1/statuses/%s", server, edit);
       else
          e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", server);
