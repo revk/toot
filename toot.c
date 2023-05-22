@@ -121,6 +121,9 @@ main (int argc, const char *argv[])
       poptFreeContext (optCon);
    }
 
+   if (edit && (!*edit || !strcmp (edit, "0")))
+      edit = NULL;              // Don't do edit if ID is 0 or blank
+
    // Note, we do not try to address popt memory leaks as pretty much impossible
 
    CURL *curl = curl_easy_init ();
@@ -560,7 +563,7 @@ main (int argc, const char *argv[])
       if (debug)
          j_err (j_write_pretty (t, stderr));
       char *e;
-      if (edit && *edit && strcmp (edit, "0"))
+      if (edit)
          e = j_curl_put (curl, t, r, bearer, "https://%s/api/v1/statuses/%s", server, edit);
       else
          e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", server);
