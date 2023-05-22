@@ -128,7 +128,7 @@ main (int argc, const char *argv[])
    if (edit && (!*edit || !strcmp (edit, "0")))
       edit = NULL;              // Don't do edit if ID is 0 or blank
 
-   // Note, we do not try to address popt memory leaks as pretty much impossible, they are small are unimportant
+   // Note, we do not try to address popt memory leaks as pretty much impossible, they are small and unimportant
 
    CURL *curl = curl_easy_init ();
    if (debug)
