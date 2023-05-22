@@ -13,6 +13,8 @@
 #include <ajlcurl.h>
 #include <sys/file.h>
 
+#define	LEGACYFILEFORMAT	// Handle old file format - this is mainly to mark what to remove later
+
 int debug = 0;
 
 int
@@ -121,7 +123,12 @@ main (int argc, const char *argv[])
       poptFreeContext (optCon);
    }
 
-   // Note, we do not try to address popt memory leaks as pretty much impossible
+   // Any sanity checking args
+
+   if (edit && (!*edit || !strcmp (edit, "0")))
+      edit = NULL;              // Don't do edit if ID is 0 or blank
+
+   // Note, we do not try to address popt memory leaks as pretty much impossible, they are small and unimportant
 
    CURL *curl = curl_easy_init ();
    if (debug)
@@ -134,6 +141,7 @@ main (int argc, const char *argv[])
    if (!access (auth_file, F_OK))
    {
       j_err (j_read_file (auth, auth_file));
+#ifdef	LEGACYFILEFORMAT
       j_t j = j_find (auth, "server");
       if (j)
       {                         // Old file format - convert to new file format
@@ -179,6 +187,7 @@ main (int argc, const char *argv[])
          if (e)
             errx (1, "Failed to update %s: %s", auth_file, e);
       }
+#endif
    }
 
    if (create_app)
@@ -339,8 +348,6 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          bearer = NULL;         // Get new creds
-      if (debug)
-         j_err (j_write_pretty (r, stderr));
       j_delete (&r);
    }
    if (media)
@@ -560,7 +567,7 @@ main (int argc, const char *argv[])
       if (debug)
          j_err (j_write_pretty (t, stderr));
       char *e;
-      if (edit && *edit && strcmp (edit, "0"))
+      if (edit)
          e = j_curl_put (curl, t, r, bearer, "https://%s/api/v1/statuses/%s", server, edit);
       else
          e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", server);
