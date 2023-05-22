@@ -348,8 +348,6 @@ main (int argc, const char *argv[])
          j_err (j_write_pretty (r, stderr));
       if (e)
          bearer = NULL;         // Get new creds
-      if (debug)
-         j_err (j_write_pretty (r, stderr));
       j_delete (&r);
    }
    if (media)
