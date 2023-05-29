@@ -13,7 +13,7 @@
 #include <ajlcurl.h>
 #include <sys/file.h>
 
-#define	LEGACYFILEFORMAT	// Handle old file format - this is mainly to mark what to remove later
+#define	LEGACYFILEFORMAT        // Handle old file format - this is mainly to mark what to remove later
 
 int debug = 0;
 
@@ -520,69 +520,99 @@ main (int argc, const char *argv[])
             strcpy (status + pos, "…");
          }
       }
-      j_t t = j_create (),
-         r = j_create ();
-      // TODO Idempotency-Key
-      j_store_string (t, "status", status);
-      if (reply)
-         j_store_string (t, "in_reply_to_id", reply);
-      if (spoiler)
-      {
-         j_store_boolean (t, "sensitive", 1);
-         if (*spoiler)
-            j_store_string (t, "spoiler_text", spoiler);
-      }
-      j_store_string (t, "visibility", visibility);
-      j_store_string (t, "language", language);
-      if (scheduled)
-         j_store_string (t, "scheduled_at", scheduled);
-      if (attach)
-      {
-         j_t m = j_store_array (t, "media_ids");
-         char *a = strdupa (attach);
-         while (a && *a)
-         {
-            char *b = strchr (a, ',');
-            if (b)
-               *b++ = 0;
-            j_append_string (m, a);
-            a = b;
-         }
-      }
-      if (poll)
-      {
-         j_t p = j_store_object (t, "poll");
-         j_store_int (p, "expires_in", polltime);
-         j_t o = j_store_array (p, "options");
-         char *a = strdupa (poll);
-         while (a && *a)
-         {
-            char *b = strchr (a, ',');
-            if (b)
-               *b++ = 0;
-            j_append_string (o, a);
-            a = b;
-         }
-      }
-      if (debug)
-         j_err (j_write_pretty (t, stderr));
-      char *e;
       if (edit)
-         e = j_curl_put (curl, t, r, bearer, "https://%s/api/v1/statuses/%s", server, edit);
-      else
-         e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", server);
-      if (debug)
-         j_err (j_write_pretty (r, stderr));
-      if (e)
-         errx (1, "Failed %s", e);
-      if (!quiet)
       {
-         printf ("%s", j_get (r, "id"));
-         if (isatty (1))
-            putchar ('\n');
+         j_t r = j_create ();
+         char *e = j_curl_get (curl, NULL, r, bearer, "https://%s/api/v1/statuses/%s/source", server, edit);
+         if (debug)
+            j_err (j_write_pretty (r, stderr));
+         if (e)
+            edit = NULL;        // Failed
+         else
+         {
+            int check (void)
+            {
+               const char *v;
+               v = j_get (r, "text"); // Yes, it is "text" not "status" FFS
+               if (strcmp (v ? : "", status ? : ""))
+                  return 1;     // Different status
+               v = j_get (r, "spoiler_text");
+               if (strcmp (v ? : "", spoiler ? : ""))
+                  return 2;     // Different spoiler
+	       // It does not look like all parameters are sent, but these should be sensible for edit comparison. We can add more later if needed
+return 0; // Same
+            }
+            if (!check ())
+               status = NULL;   // Don't post
+         }
+         j_delete (&r);
       }
-      j_delete (&t);
-      j_delete (&r);
+      if (status)
+      {
+         j_t t = j_create (),
+            r = j_create ();
+         // TODO Idempotency-Key
+         j_store_string (t, "status", status);
+         if (reply)
+            j_store_string (t, "in_reply_to_id", reply);
+         if (spoiler)
+         {
+            j_store_boolean (t, "sensitive", 1);
+            if (*spoiler)
+               j_store_string (t, "spoiler_text", spoiler);
+         }
+         j_store_string (t, "visibility", visibility);
+         j_store_string (t, "language", language);
+         if (scheduled)
+            j_store_string (t, "scheduled_at", scheduled);
+         if (attach)
+         {
+            j_t m = j_store_array (t, "media_ids");
+            char *a = strdupa (attach);
+            while (a && *a)
+            {
+               char *b = strchr (a, ',');
+               if (b)
+                  *b++ = 0;
+               j_append_string (m, a);
+               a = b;
+            }
+         }
+         if (poll)
+         {
+            j_t p = j_store_object (t, "poll");
+            j_store_int (p, "expires_in", polltime);
+            j_t o = j_store_array (p, "options");
+            char *a = strdupa (poll);
+            while (a && *a)
+            {
+               char *b = strchr (a, ',');
+               if (b)
+                  *b++ = 0;
+               j_append_string (o, a);
+               a = b;
+            }
+         }
+         if (debug)
+            j_err (j_write_pretty (t, stderr));
+         char *e;
+         if (edit)
+            e = j_curl_put (curl, t, r, bearer, "https://%s/api/v1/statuses/%s", server, edit);
+         else
+            e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", server);
+         if (debug)
+            j_err (j_write_pretty (r, stderr));
+         if (e)
+            errx (1, "Failed %s", e);
+         if (!quiet)
+         {
+            printf ("%s", j_get (r, "id"));
+            if (isatty (1))
+               putchar ('\n');
+         }
+         j_delete (&t);
+         j_delete (&r);
+      }
    }
    if (delete)
    {
