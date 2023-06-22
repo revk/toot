@@ -53,9 +53,9 @@ main (int argc, const char *argv[])
    int quiet = 0;
    int authzap = 0;
    int authdefault = 0;
-   {                            // POPT
-      poptContext optCon;       // context for parsing command-line options
-      const struct poptOption optionsTable[] = {
+   poptContext optCon;       // context for parsing command-line options
+    {                            // POPT
+     const struct poptOption optionsTable[] = {
          {"as", 0, POPT_ARG_STRING, &as, 0, "As", "Tag (for multi user auth file)"},
          {"status", 0, POPT_ARG_STRING, &status, 0, "Status", "Text of status, or - for stdin, assumes a post if no --edit= set"},
          {"crop", 0, POPT_ARG_INT, &crop, 0, "Crop and add …", "Characters (e.g. 500)"},
@@ -120,7 +120,6 @@ main (int argc, const char *argv[])
             fprintf (f, "%s%s", n++ ? " " : "", v);
          fclose (f);
       }
-      poptFreeContext (optCon);
    }
 
    // Any sanity checking args
@@ -687,5 +686,6 @@ return 0; // Same
    j_delete (&auth);
    curl_easy_cleanup (curl);
    free (status);
+   poptFreeContext (optCon);
    return 0;
 }
