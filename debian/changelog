@@ -1,3 +1,9 @@
+aa-toot (0.10) UNRELEASED; urgency=low
+
+  * Handle changes to popt freeing stuff properly now
+
+ -- Andrews and Arnold <debs@aa.net.uk>  Thu, 22 Jun 2023 13:22:00 +0100
+
 aa-toot (0.09) UNRELEASED; urgency=low
 
   * Edit no longer sends a change if text (and spoiler) is the same.
