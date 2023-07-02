@@ -49,17 +49,19 @@ main (int argc, const char *argv[])
    char *status = NULL;
    int login = 0;
    int crop = 0;
+   int strip = 0;
    int expand = 0;
    int quiet = 0;
    int authzap = 0;
    int authdefault = 0;
-   poptContext optCon;       // context for parsing command-line options
-    {                            // POPT
-     const struct poptOption optionsTable[] = {
+   poptContext optCon;          // context for parsing command-line options
+   {                            // POPT
+      const struct poptOption optionsTable[] = {
          {"as", 0, POPT_ARG_STRING, &as, 0, "As", "Tag (for multi user auth file)"},
          {"status", 0, POPT_ARG_STRING, &status, 0, "Status", "Text of status, or - for stdin, assumes a post if no --edit= set"},
          {"crop", 0, POPT_ARG_INT, &crop, 0, "Crop and add …", "Characters (e.g. 500)"},
          {"expand", 0, POPT_ARG_NONE, &expand, 0, "Expand $variable in status and allow \\n, etc."},
+         {"strip", 0, POPT_ARG_NONE, &strip, 0, "Strip anything that looks like markup"},
          {"attach", 0, POPT_ARG_STRING, &attach, 0, "Attach", "Comma separated media IDs"},
          {"focus", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &focus, 0, "Focus", "x,y"},
          {"poll", 0, POPT_ARG_STRING, &poll, 0, "Poll", "Comma separated poll strings"},
@@ -433,7 +435,7 @@ main (int argc, const char *argv[])
                   while (*e && *e != '}')
                      e++;
                   if (!*e || e == f)
-                     return 0;  // No variable or no closing }
+                     return 0;  // No variable or no closing brace
                   s = e + 1;    // next
                } else
                {
@@ -498,6 +500,38 @@ main (int argc, const char *argv[])
          free (status);
          status = new;
       }
+      if (strip)
+      {                         // Strip markup
+         size_t l;
+         char *s = status,
+            *new;
+         FILE *m = open_memstream (&new, &l);
+         while (*s)
+         {
+            if (*s == '<')
+            {                   // Does it look like markup?
+               char *e = s,
+                  q = 0;
+               while (*e && (q || *e != '>'))
+               {
+                  if (*e == q)
+                     q = 0;
+                  else if (*e == '\'' || *e == '"')
+                     q = *e;
+                  e++;
+               }
+               if (*e)
+               {                // SKip the markup
+                  s = ++e;
+                  continue;
+               }
+            }
+            fputc (*s++, m);
+         }
+         fclose (m);
+         free (status);
+         status = new;
+      }
       if (crop)
       {                         // Crop length (typically 500), unicode characters
          int p = 0;
@@ -532,14 +566,14 @@ main (int argc, const char *argv[])
             int check (void)
             {
                const char *v;
-               v = j_get (r, "text"); // Yes, it is "text" not "status" FFS
+               v = j_get (r, "text");   // Yes, it is "text" not "status" FFS
                if (strcmp (v ? : "", status ? : ""))
                   return 1;     // Different status
                v = j_get (r, "spoiler_text");
                if (strcmp (v ? : "", spoiler ? : ""))
                   return 2;     // Different spoiler
-	       // It does not look like all parameters are sent, but these should be sensible for edit comparison. We can add more later if needed
-return 0; // Same
+               // It does not look like all parameters are sent, but these should be sensible for edit comparison. We can add more later if needed
+               return 0;        // Same
             }
             if (!check ())
                status = NULL;   // Don't post
