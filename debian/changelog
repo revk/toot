@@ -1,3 +1,9 @@
+aa-toot (0.12) UNRELEASED; urgency=low
+
+  * Defaults language to en-gb rather than en
+
+ -- Andrews and Arnold <debs@aa.net.uk>  Mon, 30 Oct 2023 08:12:10 +0000
+
 aa-toot (0.11) UNRELEASED; urgency=low
 
   * Added --strip, as it seems we post with markup from aastatus, so this will be useful
